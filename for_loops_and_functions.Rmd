@@ -1,0 +1,254 @@
+---
+title: "Untitled"
+author: "Juliet"
+date: "8/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(palmerpenguins)
+library(tidyverse)
+```
+
+```{r}
+# create a for loop that returns your total time for any two consecutive quarter miles
+
+quarter_splits <- c(1.0, 1.1, 1.2, 1.1, 1.4, 1.5, 1.6, 1.4)
+
+quarter_mi_consec <- vector(mode = "numeric", length = length(quarter_splits) - 1)
+
+for (i in 1:(length(quarter_splits) - 1)) {
+  quarter_mi_consec[i] <- quarter_splits[i] + quarter_splits[i + 1]
+}
+
+quarter_mi_consec
+
+#use -1 in the seq_along(quarter_splits) - 1 because you cannot calc a value for the last i because there is no consec value, so there should only be 7 values returned
+
+#can write with print function instead of naming it / storing it as quarter_mi_consec
+
+# the following is the same thing with an intermediate object name:
+
+quarter_mi_consec <- vector(mode = "numeric", length = length(quarter_splits) - 1)
+
+for (i in 1:(length(quarter_splits) - 1)) {
+  half_mile <- quarter_splits[i] + quarter_splits[i + 1]
+  quarter_mi_consec[i] <- half_mile
+}
+
+quarter_mi_consec
+
+#seq_along does not work well here because you want R to start at 1, not 0, and seq_along would output the first value as 0
+
+quarter_mi_consec <- vector(mode = "numeric", length = length(quarter_splits) - 1)
+
+for (i in (seq_along(quarter_splits) - 1)) {
+  half_mile <- quarter_splits[i] + quarter_splits[i + 1]
+  quarter_mi_consec[i] <- half_mile
+}
+
+quarter_mi_consec
+
+```
+
+# Basic Function Structure Practice
+
+```{r}
+bird_dog_sum <- function(bird, dog) {
+  
+  if (bird < 10) {
+    message("cool little bird")
+  }
+  
+  if (bird > 100) {
+    error("birds cannot live that long")
+  }
+  
+  if (dog < 0) {
+    warning("can a dog be less than 1 lb?")
+  }
+  
+  add_bird_dog <- bird + dog
+  return(add_bird_dog)
+}
+
+#add conditions so your function will give warning or errors or messages for the coder. add this condition before the function process in the {} because you want this error to be spit out as soon as the coder initially enters the values
+
+
+bird100_dog5 <- bird_dog_sum(bird = 8, dog = 5)
+
+bird100_dog5
+
+# needs numeric: bird_dog_sum(bird = "hawk", dog = 10) returns error
+
+
+```
+
+```{r}
+say_hello <- function(friend, weekday) {
+  paste("Hello", friend, "have a great", weekday)
+}
+
+say_hello(friend = "Teddy", weekday = "Thursday")
+
+```
+
+## Print() vs return() example
+
+```{r}
+find_mult <- function(a, b) {
+  my_multiplication <- a * b
+  print(my_multiplication)
+}
+
+find_mult(a = 10, b = 6)
+find_mult(a = 10, b = 6) + 12
+#python would not have allowed you to add 12 outside the function, python needs you the RETURN not just print if you want to do subsequent steps to the value
+```
+
+## Functions with conditions: have your function change based on the user's inputs, like depending on what species you pull data from
+
+```{r}
+animal_age <- function(animal, age) {
+  
+  if (!animal %in% c("dog", "goat")) {
+    stop("unknown species entered")
+  }
+  
+  if (animal == "dog") {
+    creature_age <- age * 7
+  }
+  
+  else if (animal == "goat") {
+    creature_age <- age * 4.7
+  }
+  
+  return(creature_age)
+}
+
+animal_age(animal = "goat", age = 13)
+
+# now try to break this function, like another animal name or if the number is written as "ten"
+
+#animal_age(animal = "zebra", age = 5)
+
+#the ! before animal in the stop / error means NOT in that list of options
+
+
+```
+
+
+
+```{r}
+# keep obs of adelie or gentoo
+
+adelie_gentoo <- penguins %>% 
+  filter(species %in% c("Adelie", "Gentoo"))
+
+#R goes to the species col, then tests every row one by one, and the %in% asks if it matches adelie or gentoo and keeps it if so
+
+# alternative way:
+
+adelie_gentoo_wrong <- penguins %>% 
+  filter(species == "Adelie" | species == "Gentoo")
+
+#but this becomes tedious and long code, so it is more efficient to use the previous way
+
+#common mistake:
+
+adelie_gentoo_wrong <- penguins %>% 
+  filter(species == c("Adelie", "Gentoo"))
+
+# this is wrong because it does not detect every obs of adelie or gentoo, it is looking for an exact match, it asks if row 1 is adelie, then asks if row 2 is gentoo, then goes to row 3 and asks if it is adelie, it is alternating this vector until it reaches the end
+
+# add a warning to this fucntion (if you wrote it) so a user can be warned that this function is probs not doing what you want it to do!
+
+
+```
+
+
+# combine functions and for loops!
+```{r}
+#take the mean of every column in a dataset just by entering the data frame
+
+df_mean <- function(df) {
+  for (i in 1:ncol(df)) {
+    col_mean <- mean(df[[i]], na.rm = TRUE)
+    print(col_mean)
+  }
+}
+
+#test the function with mtcars
+
+df_mean(df = mtcars)
+
+# make the function return more specifically what column you are taking the mean of
+# colnames(df[i]) will return that column name as a string
+
+df_mean <- function(df) {
+  for (i in 1:ncol(df)) {
+    col_mean <- mean(df[[i]])
+    print(paste("The mean of column", colnames(df[i]), "is", col_mean))
+  }
+}
+
+# or:
+
+df_mean <- function(df) {
+  for (i in 1:ncol(df)) {
+    col_mean <- mean(df[[i]])
+    col_name <- colnames(df[i])
+    print(paste("The mean of column", col_name, "is", col_mean))
+  }
+}
+
+df_mean(df = mtcars)
+
+```
+
+
+```{r}
+# make a subset of only structural size variables from the penguins dataset for chinstrap
+
+chinstrap_sizes <- penguins %>% 
+  filter(species == "Chinstrap") %>% 
+  select(bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g)
+
+# filter is for filtering rows, sleect is for subsetting columns
+
+df_mean(df = chinstrap_sizes)
+```
+
+
+## Condition to check the class of an input
+
+```{r}
+lunch <- function(tacos, price) {
+  
+  if (is.numeric(tacos) == FALSE) {
+    stop("you must input a number of tacos")
+  }
+  
+  total_price <- tacos * price
+  return(total_price)
+}
+
+lunch(tacos = 4, price = 2.50)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
