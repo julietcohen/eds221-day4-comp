@@ -238,13 +238,118 @@ lunch <- function(tacos, price) {
 lunch(tacos = 4, price = 2.50)
 ```
 
+## loop example: use values from a data frame to calc something based on user input
+
+```{r}
+# working with different sites: mountain, prairie, desert, beach, each with depth and slope (cols) for each of these
+# write a function that will automatically pull parameter functions from a data frame
+# calc the groundwater transport rate
+
+gw_rate <- function(site) {
+  
+  gw_depth_slope <- data.frame(sitename = c("mountain", "prairie", "beach", "desert"),
+                               depth = c(32, 41, 63, 2),
+                               slope = c(11.2, 0.4, 0.8, 2.6))
+                               
+  site_select <- dplyr::filter(gw_depth_slope, sitename == site)
+  
+  transport_rate <- 1.4 * site_select$slope + 3.6 * site_select$depth
+  
+  return(transport_rate)
+}
+
+# alternative for site_select line in the gw_rate function:   gw_depth_slope %>% filter(sitename == site)
+
+gw_rate(site = "beach")
+
+```
+
+## switch function
+
+```{r}
+gw_rate_switch <- function(site) {
+  
+  gw_slope_depth <- switch(site,
+                           "mountain" = c(32, 11.2),
+                           "prairie" = c(41, 0.4),
+                           "beach" = c(63, 0.8),
+                           "desert" = c(2, 2.6))
+  
+  transport_rate <- 1.4 * gw_slope_depth[2] + 3.6 * gw_slope_depth[1]
+  
+  return(transport_rate)
+}
+
+gw_rate_switch(site = "beach")
+```
+
+# Logistic growth function
+
+```{r}
+  
+logistic_growth <- function(K, N0, r, time) {
+  Nt <- K / (1 +((K - N0) / N0) * exp(-r * time))
+  print(Nt)
+}
+
+logistic_growth(K= 5000, N0 = 200, r = 0.43, time = 6)
+
+# create a time sequence
+
+time_vec <- seq(from = 0, to = 35, by = 0.1)
+bacterial_growth <- logistic_growth(K = 5000, N0 = 200, r = 0.43, time = time_vec)
+
+# in order to graph these against each other, you need to put them in the same dataframe
+
+bacterial_df <- data.frame(time_vec, bacterial_growth)
+
+ggplot(data = bacterial_df, aes(x = time_vec, y = bacterial_growth)) +
+  geom_line(aes(color = time_vec))
+
+```
 
 
+```{r}
+r_seq <- seq(from = 0.20, to = 0.40, by = 0.01)
+time_vec <- seq(from = 0, to = 35, by = 0.1)
+
+# create an output matrix
+# (rows, col)
+
+out_matrix <- matrix(ncol = length(r_seq), nrow = length(time_vec))
+
+# N0 = 100, K = 6000
+
+#write a nested for loop that uses my function and sends the output value for each combo into an output matrix in the order we discussed
+
+for (i in seq_along(r_seq)) {
+  for (j in seq_along(time_vec)) {
+    pop <- logistic_growth(K = 6000, N0 = 100, r = r_seq[i], time = time_vec[j])
+    out_matrix[j, i] <- pop
+  }
+}
+
+#out_matrix
+
+#the order of inner & outer loops doesn't matter, but J, i must match out_matrix order (ncol =, nrow =) which must correspond and therefore populate the matrix by row then col or col then row
+
+# wrangling
+
+out_df <- data.frame(time = time_vec, out_matrix)
+
+colnames(out_df) <- c("time", paste0("gr_", r_seq))
+
+# make long form (tidy version) of this data
+out_df_long <- out_df %>% 
+  pivot_longer(-time, names_to = "growth_rate", values_to = "population")
 
 
+# make a line graph with pop on Y over time on x with color of line dependent on the growth rate
 
+ggplot(data = out_df_long, aes(x = time, y = population)) +
+  geom_line(aes(color = growth_rate))
 
-
+```
 
 
 
